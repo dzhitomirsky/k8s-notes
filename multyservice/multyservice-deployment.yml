@@ -1,0 +1,83 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: test
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host:
+    http:
+      paths:
+      - path: /foo/
+        backend:
+          serviceName: s1
+          servicePort: 80
+      - path: /bar/
+        backend:
+          serviceName: s2
+          servicePort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: s1
+spec:
+  ports:
+  - port: 80
+    targetPort: 3000
+  selector:
+    app: node1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: s2
+spec:
+  ports:
+  - port: 80
+    targetPort: 3000
+  selector:
+    app: node2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service1
+spec:
+  selector:
+    matchLabels:
+      app: node1
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: node1
+    spec:
+      containers:
+      - name: service1
+        image: service1:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service2
+spec:
+  selector:
+    matchLabels:
+      app: node2
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: node2
+    spec:
+      containers:
+      - name: service2
+        image: service2:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
